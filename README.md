@@ -34,7 +34,7 @@ This app orchestrates an iterative loop to refine prompts for a video generation
 
 - A prompt generation or refinement step handled by ChatGPT.  
 - A video creation request to the Replicate API.  
-- Automated evaluation of selected frames via OpenAI’s o1 vision model (or your own logic).  
+- Automated evaluation of selected frames via OpenAI’s GPT-4o-mini vision model (with support for o1).  
 - Logging results, analyzing shortcomings, and feeding that analysis back into ChatGPT.  
 
 Through multiple iterations, the system “learns” from previous outcomes and continually refines the prompt.
