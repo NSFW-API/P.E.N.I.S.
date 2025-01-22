@@ -1,0 +1,7 @@
+openai~=1.59.9
+replicate~=1.0.4
+PyYAML~=6.0.2
+requests
+pillow~=11.1.0
+ffmpeg-python
+python-dotenv~=1.0.1
