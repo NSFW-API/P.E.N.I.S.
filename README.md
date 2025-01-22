@@ -1,4 +1,4 @@
-# Automated Iterative Video Generation and Evaluation
+# Prompt-based Evolutionary Nudity Iteration System
 
 This repository contains an example application for creating and refining prompts to generate videos using the [Tencent/Hunyuan-Video](https://replicate.com/tencent/hunyuan-video) model hosted on [Replicate](https://replicate.com/), with automated evaluation via OpenAI’s “o1” vision-capable model. The goal is to build a self-improving loop:  
 1. Generate a video with a text prompt.  
