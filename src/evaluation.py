@@ -123,7 +123,7 @@ def evaluate_all_elements(video_path, iteration_name, config, user_goal, require
         data_url = encode_image_as_data_url(filepath)
         user_msg_content.append({
             "type": "image_url",
-            "image_url": {"url": data_url, "detail": "auto"}
+            "image_url": {"url": data_url, "detail": "high"}
         })
 
     # Send to GPT
