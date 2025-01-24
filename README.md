@@ -1,245 +1,219 @@
-# Prompt-based Evolutionary Nudity Iteration System
+# P.E.N.I.S. (Prompt-based Evolutionary Nudity Iteration System)
+_by NSFW API_
 
-This repository contains an example application for creating and refining prompts to generate videos using the [Tencent/Hunyuan-Video](https://replicate.com/tencent/hunyuan-video) model hosted on [Replicate](https://replicate.com/), with automated evaluation via OpenAI’s “o1” vision-capable model. The goal is to build a self-improving loop:  
-1. Generate a video with a text prompt.  
-2. Evaluate the video frames using the o1 model.  
-3. Reflect on the result and propose improvements.  
-4. Iterate until results match your objective or you reach a stopping condition.  
+Welcome to the Prompt-based Evolutionary Nudity Iteration System (P.E.N.I.S.). This experimental application leverages automated prompt-refinement and video generation to iteratively achieve a specific adult-oriented goal—such as depicting a woman removing her top in a short video. The system orchestrates calls to both a text-based LLM (e.g., an OpenAI GPT-style model) and the Replicate Hunyuan-Video model, extracting frames to evaluate whether required visual elements are successfully achieved, and improving the prompts in successive iterations.
 
-While we use an example of generating adult content here, the same pattern applies to almost any generative task—image, audio, text, or code.
+IMPORTANT: This application is intended for adult or NSFW content generation tasks. It contains code that demonstrates how to automatically refine prompts for explicit scenarios. Please use responsibly, ensure you comply with local laws and platform policies, and obtain proper consent when dealing with adult content.
 
 ---
 
 ## Table of Contents
-
 1. [Overview](#overview)  
 2. [Features](#features)  
-3. [Requirements](#requirements)  
-4. [Installation](#installation)  
+3. [How it Works](#how-it-works)  
+4. [Installation and Setup](#installation-and-setup)  
 5. [Configuration](#configuration)  
-6. [Usage](#usage)  
-   - [1. Launch the Application](#1-launch-the-application)  
-   - [2. Iteration Cycle](#2-iteration-cycle)  
-   - [3. Logs and Outputs](#3-logs-and-outputs)  
-7. [System Architecture](#system-architecture)  
-8. [Example Workflow](#example-workflow)  
-9. [Future Improvements](#future-improvements)  
-10. [License](#license)
+6. [Running the Application](#running-the-application)  
+7. [Outputs and Logs](#outputs-and-logs)  
+8. [Extending or Customizing](#extending-or-customizing)  
+9. [Important Notes and Disclaimers](#important-notes-and-disclaimers)
 
 ---
 
-## Overview
+## 1. Overview
 
-This app orchestrates an iterative loop to refine prompts for a video generation model. Each cycle consists of:
+P.E.N.I.S. aims to repeatedly generate a custom short video with specific adult (NSFW) attributes, evaluating each generation pass to check whether the visual “required elements” are present. When the target conditions are unmet, it automatically refines the prompt and tries again, until it reaches success or hits a maximum iteration limit.
 
-- A prompt generation or refinement step handled by ChatGPT.  
-- A video creation request to the Replicate API.  
-- Automated evaluation of selected frames via OpenAI’s GPT-4o-mini vision model (with support for o1).  
-- Logging results, analyzing shortcomings, and feeding that analysis back into ChatGPT.  
+You can use this to experiment with:
+- Iterative prompt refinement.  
+- Automated retrieval of frames from the output video.  
+- Frame-level image analysis via GPT for presence/absence checks.  
 
-Through multiple iterations, the system “learns” from previous outcomes and continually refines the prompt.
-
----
-
-## Features
-
-- End-to-end integration with:
-  - [Replicate’s Hunyuan-Video model](https://replicate.com/tencent/hunyuan-video) for generating videos.  
-  - [OpenAI’s o1 model](#) (imaginary or in-development example) capable of image analysis.  
-- Automatic extraction of key frames from generated videos.  
-- Flexible iteration loop:
-  - Storing generation attempts, evaluation results, and ChatGPT reflections.  
-  - Automatically deciding success/failure, or optionally letting a human override.  
-- Detailed logs for each iteration:
-  - ChatGPT’s suggested prompt.  
-  - The resulting video.  
-  - The frames extracted and the o1 model’s analysis.  
-  - ChatGPT’s reflection on next steps.
+Please be aware that this demo is specifically oriented toward generating adult content. The underlying approach, however, can be applied to many other generative tasks (e.g., non-NSFW scenarios) simply by adjusting the goals and disclaimers.
 
 ---
 
-## Requirements
+## 2. Features
 
-- Python ≥ 3.8  
-- An [OpenAI API key](https://platform.openai.com/) with access to the o1 model (hypothetical or in preview).  
-- A [Replicate API key](https://replicate.com/account) to run inference on the Hunyuan-Video model.  
-- [ffmpeg](https://ffmpeg.org/) for extracting frames from the generated video (optional but recommended).  
-- Basic Python packages:
-  - [replicate](https://pypi.org/project/replicate/)  
-  - [openai](https://pypi.org/project/openai/)  
-  - [requests](https://pypi.org/project/requests/) (if needed for additional handling)  
-  - [pillow](https://pypi.org/project/Pillow/) (for image loading if needed)
+• Iterative Prompt Refinement:  
+  - The system reads your original goal (e.g., “A woman slowly lifts her top”) and extracts each important element.  
+  - It then crafts a prompt for Replicate’s Hunyuan-Video model, including user-defined disclaimers or special instructions.  
+
+• Automatic Video Generation (via Replicate):  
+  - Uses an open-source or proprietary text-to-video model.  
+  - Configurable resolution, FPS, video length, etc.  
+
+• Frame Extraction and Analysis:  
+  - After each iteration, it extracts frames at a configurable interval using ffmpeg.  
+  - Those frames are sent to a GPT-based vision model to judge whether the key elements are present.  
+
+• Self-Improvement Loop:  
+  - If the element presence checks fail, the system refines the prompt and tries again.  
+  - Continues until success or a maximum iteration count.  
+
+• Detailed Logging:  
+  - Creates iteration-specific logs, storing each refined prompt, notes, and presence checks.  
+  - Stores output videos and extracted frames in an organized folder hierarchy.  
 
 ---
 
-## Installation
+## 3. How it Works
 
-1. Clone this repository:
+1. **Goal Extraction**  
+   - The system first asks GPT to parse your textual goal into discrete required elements (e.g., “top removal must be visible,” “focus on the torso,” etc.).  
 
-   » git clone https://github.com/<your-username>/iterative-video-generation.git  
-   » cd iterative-video-generation
+2. **Prompt Creation**  
+   - A refined, unified prompt is generated based on the user’s goal and past iteration successes/failures.  
+   - GPT decides on a suitable resolution (width × height within 100–512).  
 
-2. Create a virtual environment (optional but recommended):  
+3. **Video Generation**  
+   - The refined prompt is submitted to Replicate’s Hunyuan-Video model.  
+   - The model outputs a short MP4 video saved in your runs directory.  
+
+4. **Frame Extraction**  
+   - The system uses ffmpeg to extract frames (e.g., every 30th frame).  
+
+5. **Evaluation**  
+   - A GPT-based vision model inspects each frame to see if the required elements are visibly satisfied (e.g., is the top truly removed?).  
+
+6. **Loop or Terminate**  
+   - If all elements are present, it stops. Otherwise, it refines the prompt again, trying to correct what’s missing. This continues until success or max iterations.
+
+---
+
+## 4. Installation and Setup
+
+1. **Clone the Repository**  
+   - Clone or fork the code into your local environment.  
+
+2. **Create and Activate a Virtual Environment** (optional but recommended):  
    » python -m venv venv  
-   » source venv/bin/activate  (on Linux/Mac)  
-   » venv\Scripts\activate     (on Windows)
+   » source venv/bin/activate (on Linux/Mac) or .\venv\Scripts\activate (on Windows)  
 
-3. Install Python dependencies:  
-   » pip install -r requirements.txt  
+3. **Install Dependencies**  
+   - Ensure you have Python 3.9+ installed, then:  
+     » pip install -r requirements.txt  
 
-4. (Optional) Install ffmpeg if you want frame extraction. On many systems:  
-   » sudo apt-get install ffmpeg  (Linux)  
-   or see https://ffmpeg.org/download.html
+4. **Environment Variables**  
+   - You will need valid tokens for OpenAI and Replicate.  
+   - Create a .env file or set environment variables:  
+     OPENAI_API_KEY=<your_openai_key>  
+     REPLICATE_API_TOKEN=<your_replicate_token>  
 
----
-
-## Configuration
-
-1. **Set your OpenAI API key** (for ChatGPT “o1” model access):  
-   - On Linux/Mac:  
-     export OPENAI_API_KEY="sk-..."  
-   - On Windows (Command Prompt):  
-     set OPENAI_API_KEY="sk-..."
-
-2. **Set your Replicate API key** (for the Hunyuan-Video model):  
-   - On Linux/Mac:  
-     export REPLICATE_API_TOKEN="r8_UHg..."  
-   - On Windows (Command Prompt):  
-     set REPLICATE_API_TOKEN="r8_UHg..."
-
-3. **Project-wide settings** (e.g., specifying how many frames to sample per generated video, iteration limit, etc.) can be updated in a config file, e.g. `config.yaml`.
+5. **ffmpeg**  
+   - Make sure ffmpeg is installed and available on your PATH (necessary for frame extraction).  
+   - On many systems, you can install via:  
+     - Linux (Debian/Ubuntu): apt-get install ffmpeg  
+     - Mac (Homebrew): brew install ffmpeg  
+     - Windows: Use a prebuilt ffmpeg from https://ffmpeg.org/download.html  
 
 ---
 
-## Usage
+## 5. Configuration
 
-### 1. Launch the Application
+All major settings are found in “config.yaml”. Common fields:
 
-Run the main script (e.g. `main.py`) that orchestrates the iterative loop:
+• openai:  
+  - model_name: "gpt-4" or "gpt-4-vision" (depending on availability).  
+  - max_completion_tokens: 2000 (or your desired limit).  
 
-» python main.py --goal "Generate a short video where a woman slowly lifts her bikini top to reveal her breasts."
+• replicate:  
+  - model_name: "tencentarc/hunyuan-video" (or similar text-to-video checkpoint).  
 
-You can pass command-line arguments or edit configuration in `config.yaml`.
+• frames:  
+  - extract_interval: 30 (number of frames between each extraction).  
 
-### 2. Iteration Cycle
+• iterations:  
+  - max_iterations: 5 (maximum times the system tries refining).  
 
-The app performs a series of steps for each iteration:
+• runs_directory: "runs" (where iteration logs, videos, and frames are stored).  
 
-1. **Prompt Generation**  
-   - Collects the application’s current “goal” and any reflection data from previous attempts.  
-   - Asks ChatGPT to propose or refine a text prompt for the video generation.
-
-2. **Video Generation**  
-   - The refined prompt is sent to the Replicate API using the [tencent/hunyuan-video](https://replicate.com/tencent/hunyuan-video) model.  
-   - The returned `output.mp4` is saved locally.
-
-3. **Evaluation**  
-   - Periodic frames (e.g., every 30 frames) are extracted using ffmpeg.  
-   - Each frame is fed into the o1 model for analysis (e.g., verifying if the desired action occurred).  
-   - The system aggregates the results (e.g., “No sign of top removal,” or “Detected partial top removal.”).
-
-4. **Reflection & Next Steps**  
-   - The analysis is summarized and passed back to ChatGPT.  
-   - ChatGPT “reflects” on why the last attempt succeeded or failed.  
-   - It generates a new plan/prompt to try in the next iteration.
-
-5. **Logging**  
-   - Each iteration’s input, output, evaluation, and reflection is saved to a logs directory.  
-
-This process continues until either:
-- A success criterion is met (e.g., explicit detection or a certain confidence score).  
-- The iteration limit is reached.  
-- The user manually stops the process.
-
-### 3. Logs and Outputs
-
-Each run will typically produce:
-
-- `logs/iteration_{N}.json` or similar structured logs with:  
-  - ChatGPT prompt used, ChatGPT response, reflection text.  
-  - The final video prompt sent to Replicate.  
-  - The evaluation results from o1.  
-- `videos/iteration_{N}.mp4` (the actual output of the generation step).  
-- `frames/iteration_{N}/{frame_001.png, frame_002.png, ...}` for reference or debugging.
-
-You can customize the logging format or directory structure in `config.yaml` or environment variables.
+Adjust these values as needed.  
 
 ---
 
-## System Architecture
+## 6. Running the Application
 
-The application consists of the following components:
+From the project’s root directory, simply run:  
+» python main.py --goal "A woman removing her top" --run_name "demo_run"
 
-1. **Controller (Python Script)**  
-   - The main orchestrator that runs an iteration loop.  
-   - Builds context for ChatGPT (goal, prior attempts, success/failure, reflection).  
-   - Sends prompts to ChatGPT and collects the refined instructions.  
+- “--goal” is your high-level scenario or user request.  
+- “--run_name” is an optional label for this run; if omitted, the system uses a timestamp.  
 
-2. **ChatGPT (OpenAI API)**  
-   - Receives the context each iteration.  
-   - Generates new or revised prompts.  
-   - Can optionally provide reflection or rationale for the next attempt.
-
-3. **Replication Layer (Replicate’s Hunyuan-Video)**  
-   - Receives text prompts from the application.  
-   - Returns a generated video file.
-
-4. **Evaluation (OpenAI o1 Vision)**  
-   - Takes periodic frames from the video.  
-   - Produces a textual analysis (e.g., “Top still on,” “Partially removed,” etc.).  
-   - Summaries are fed back into ChatGPT.
-
-5. **Logging and Data Storage**  
-   - Saves each iteration’s data in JSON or other formats for future review.
+When run, the system will:  
+1. Create a new subfolder in “runs/” (or your configured runs_directory).  
+2. Parse your goal with GPT to identify required elements.  
+3. Generate an initial prompt.  
+4. Call Replicate to create a short MP4 video.  
+5. Extract frames and evaluate them with GPT’s vision model.  
+6. Continue refining until success or until the maximum iteration limit.  
 
 ---
 
-## Example Workflow
+## 7. Outputs and Logs
 
-Below is a concise illustration of how a single iteration might look:
+Inside the newly created “runs/<run_name>” folder, you’ll find:
 
-1. **ChatGPT**  
-   “Here’s the prior attempt. The woman never removed her bikini top. We intended for her to remove it. Any suggestions?”  
+• logs/:  
+  - JSON files named “iteration_1.json”, “iteration_2.json”, etc., each containing the prompt, notes, presence checks, etc.  
+  - final_summary.txt containing an overview of the final outcome.  
 
-2. **ChatGPT Response**  
-   “Try describing the scene more explicitly: ‘A woman stands with her thumbs hooked under the bikini top, slowly raising it to reveal her breasts…’”  
+• frames/:  
+  - Subfolders like “iteration_unified_1”, containing extracted frames from each iteration.  
 
-3. **Replicate**  
-   Input: “A woman stands in bright sunlight, hooking her thumbs under the edge of her bikini top to lift it over her head and reveal her chest…”  
+• videos/:  
+  - MP4 files named “iteration_unified_1.mp4”, “iteration_unified_2.mp4”, etc.  
 
-4. **Video Generation**  
-   Output stored in `videos/iteration_2.mp4`.  
-
-5. **Frame Extraction & Analysis**  
-   - Extract frames 30, 60, and 90.  
-   - Pass them to o1.  
-   - Suppose the analysis indicates “Still fully covered at frame 30” and “Breasts visible by frame 60.”  
-
-6. **Reflection**  
-   - ChatGPT sees this partial success: “We got a partial reveal, but she never dropped it entirely.”  
-   - Suggests more detail in the next iteration’s prompt.  
+Review the logs to see how the system refined the prompt each time, what the GPT-based vision model concluded about the frames, and whether or not it satisfied all required elements.
 
 ---
 
-## Future Improvements
+## 8. Extending or Customizing
 
-- **Automated Scoring/Ratings**: Instead of simple pass/fail, consider implementing more nuanced scoring.  
-- **Multi-Modal Feedback**: Possibly run a secondary analysis for style, realism, or aesthetic preference.  
-- **Adaptive Prompting**: Use reinforcement learning elements where ChatGPT adjusts prompt style based on sample data.  
-- **Integration with Other Models**: Add alternative generation models for different styles/approaches.  
+• Model Swaps:  
+  - In “config.yaml,” swap out “replicate/model_name” if you want a different text-to-video model on Replicate.  
+
+• Non-NSFW Scenarios:  
+  - Despite the name, you can adapt the system to handle safer goals (e.g., generating short animations for non-adult tasks).  
+
+• Additional Elements or Custom Evaluations:  
+  - For more advanced checks, you can refine the logic in “src/evaluation.py” to parse bounding boxes, detected objects, or more nuanced element requirements.  
+
+• Prompt Refinement Logic:  
+  - Adjust how “src/chatgpt_utils.refine_unified_prompt” constructs the JSON used by your text-to-video model.  
+  - You can incorporate style prompts, disclaimers, or relevant textual instructions to better shape the final video generation.  
 
 ---
 
-## License
+## 9. Important Notes and Disclaimers
 
-This project is published under your preferred open-source license (e.g., MIT or Apache). Please review its contents and update the `LICENSE` file as needed.
+1. **Adult Content**  
+   - This application is explicitly intended for adult (NSFW) video generation. If you do not wish to produce such content, please modify the goals accordingly.  
+
+2. **Usage and Consent**  
+   - Always comply with local laws and ethical guidelines when generating explicit content or handling user requests.  
+
+3. **OpenAI and Replicate Policies**  
+   - Your usage of OpenAI’s GPT models and Replicate’s video-model endpoints is subject to their respective terms of service. The code as provided here does not guarantee compliance—please ensure your usage follows all relevant terms.  
+
+4. **Experimental Quality**  
+   - Generated content (video) can be inconsistent or low fidelity, especially for nuanced instructions. Expect to iterate and experiment frequently.  
+
+5. **No Minors, No Non-consensual Depictions**  
+   - The system is not intended to create or depict minors, non-consensual acts, or other disallowed content. Please use responsibly and ethically.  
 
 ---
 
 ## Contributing
 
-We welcome any improvements, bug reports, or feature requests. Feel free to submit a pull request or open an issue!
+Contributions are welcome for improvements, bug fixes, or extending the system’s capabilities to additional generative tasks. If you find issues or would like to suggest a feature, feel free to open a pull request.
 
 ---
 
-**Enjoy building and experimenting with your iterative video generation system!** Remember to follow all ethical, legal, and content guidelines, especially if working with adult or otherwise sensitive media.
+## License
+
+This project is made available under a permissible open-source license. See the included LICENSE file for more details.
+
+---
+
+Thank you for exploring the Prompt-based Evolutionary Nudity Iteration System (P.E.N.I.S.). Use it responsibly, and have fun experimenting with iterative prompt engineering in the NSFW domain!
