@@ -1,42 +1,40 @@
-import os
-import json
 import base64
+import json
+import os
 import subprocess
 from json import JSONDecodeError
 
 from dotenv import load_dotenv
 from openai import OpenAI
 
-load_dotenv()
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-from PIL import Image
 
-
-##################################################
-# 1) Frame Extraction
-##################################################
+###############################################################################
+# Utility: Frame Extraction
+###############################################################################
 def extract_frames(video_path, interval, output_dir):
     """
-    Use ffmpeg to extract frames every 'interval' frames.
+    Extract frames from the video every 'interval' frames using ffmpeg.
     Example command:
       ffmpeg -i video.mp4 -vf "select='not(mod(n,30))'" -vsync 0 out%03d.png
     """
     os.makedirs(output_dir, exist_ok=True)
     basename = os.path.splitext(os.path.basename(video_path))[0]
-
     cmd = [
         "ffmpeg",
-        "-i", video_path,
-        "-vf", f"select='not(mod(n,{interval}))'",
-        "-vsync", "0",
+        "-i",
+        video_path,
+        "-vf",
+        f"select='not(mod(n,{interval}))'",
+        "-vsync",
+        "0",
         os.path.join(output_dir, f"{basename}_%03d.png")
     ]
     subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
 
 
-##################################################
-# 2) Base64 Encoder
-##################################################
+###############################################################################
+# Utility: Encode image as Base64 Data URL
+###############################################################################
 def encode_image_as_data_url(image_path):
     """
     Convert an image file to a base64 data URI string.
@@ -46,120 +44,134 @@ def encode_image_as_data_url(image_path):
     return f"data:image/jpeg;base64,{encoded}"
 
 
-##################################################
-# 3) Evaluate Video by Sending All Frames at Once
-##################################################
-def evaluate_with_checklist(video_path, iteration, config, goal, rubric_items):
+###############################################################################
+# Main: Evaluate if All Required Elements Are Present
+###############################################################################
+def evaluate_all_elements(video_path, iteration_name, config, user_goal, required_elements, prev_presence=None):
     """
-    1) Extract frames using ffmpeg.
-    2) Pass them along with the `rubric_items` (list of {id, description, points})
-       to GPT. GPT should respond with a JSON object marking each `id: True/False`.
-    3) Sum the points for any item that is True.
-    4) Return (details, total_score, checkbox_dict), where `checkbox_dict` is
-       e.g. {"nudity": true, "tentacles_touching": false, ...}.
+    1) Extract frames from the given video at a configurable interval.
+    2) Pass them + the required_elements list into GPT for a presence/absence check.
+    3) Return:
+        - details: A short textual summary of which elements are present/missing
+        - all_satisfied: Bool indicating if *all* required elements are present
+        - presence_dict: Dict mapping element_id => True/False
+        - notes: GPT's textual commentary or explanation
+
+    Example GPT response structure:
+        {
+          "results": [
+            {"id": "foot_contact", "present": true},
+            {"id": "close_up_view", "present": false}
+          ],
+          "notes": "The foot isn't clearly visible, just a blur at the edge..."
+        }
     """
-    frames_dir = os.path.join(config["frames"]["output_directory"], f"iteration_{iteration}")
-    os.makedirs(frames_dir, exist_ok=True)
-    interval = config["frames"]["extract_interval"]
-    max_tokens = config["openai"].get("max_completion_tokens", 25000)
 
-    # Extract frames
-    extract_frames(video_path, interval, frames_dir)
+    load_dotenv()
+    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    model_name = config["openai"]["model_name"]
+    max_tokens = config["openai"].get("max_completion_tokens", 2000)
 
-    # Build the checklist instructions for GPT
-    # We'll ask it to examine each item from rubric_items and return True or False.
-    checklist_instructions = (
-        "You have a set of checklist items. For each item, you must return a boolean indicating "
-        "whether or not the item is satisfied in the video frames. Output EXACTLY this JSON structure:\n\n"
+    # 1) Extract frames
+    frames_parent_dir = config["frames"]["output_directory"]
+    iteration_frames_dir = os.path.join(frames_parent_dir, f"iteration_{iteration_name}")
+    os.makedirs(iteration_frames_dir, exist_ok=True)
+
+    frame_interval = config["frames"]["extract_interval"]
+    extract_frames(video_path, frame_interval, iteration_frames_dir)
+
+    # 2) Construct the GPT prompt
+    # We'll pass the user_goal and each required element as text, plus the extracted frames as data URLs.
+
+    # Format the required elements text
+    elements_text = "\n".join([f"- ID: {elem['id']} | {elem['description']}" for elem in required_elements])
+    previous_results_json = json.dumps(prev_presence, indent=2) if prev_presence else "{}"
+
+    system_instructions = (
+        "You are a video-evaluation system. You will receive:\n"
+        "1) A set of video frames.\n"
+        "2) A list of required elements for the scene.\n"
+        "3) (Optional) Data about previous iteration's presence booleans.\n\n"
+        "You must return valid JSON with exactly these keys:\n"
         "{\n"
         "  \"results\": [\n"
-        "    {\n"
-        "      \"id\": \"<string>\",\n"
-        "      \"present\": <true/false>\n"
-        "    },\n"
-        "    ... (for each item)\n"
-        "  ]\n"
+        "     {\"id\": \"some_element_id\", \"present\": true/false},\n"
+        "     ... one entry for each required element ...\n"
+        "  ],\n"
+        "  \"notes\": \"Short explanation or commentary\"\n"
         "}\n"
-        "No extra fields. No additional wrapping text.\n"
+        "No extra keys, no next prompt. Focus on correctness of presence booleans."
     )
 
-    # Prepare user_content array with text + images
-    user_content = [
-        {
-            "type": "text",
-            "text": (
-                f"Goal: {goal}\n"
-                "Below is the rubric's checklist. Please say true/false if each item is visible/achieved.\n"
-                f"{json.dumps(rubric_items, indent=2)}\n"
-                "Now, evaluate the following frames:\n"
-            ),
-        }
-    ]
+    # Build the final user message (list of frames + text describing required elements)
+    user_msg_content = []
+    user_msg_content.append({
+        "type": "text",
+        "text": (
+            f"User Goal: {user_goal}\n"
+            f"Required Elements:\n{elements_text}\n\n"
+            "Previous iteration presence booleans:\n"
+            f"{previous_results_json}\n\n"
+            "Now evaluate these frames for each required element.\n"
+        )
+    })
 
     # Attach frames as data URLs
-    frame_files = sorted(f for f in os.listdir(frames_dir) if f.endswith(".png"))
+    frame_files = sorted(f for f in os.listdir(iteration_frames_dir) if f.endswith(".png"))
     for filename in frame_files:
-        filepath = os.path.join(frames_dir, filename)
+        filepath = os.path.join(iteration_frames_dir, filename)
         data_url = encode_image_as_data_url(filepath)
-        user_content.append(
-            {
-                "type": "image_url",
-                "image_url": {"url": data_url, "detail": "auto"}
-            }
-        )
+        user_msg_content.append({
+            "type": "image_url",
+            "image_url": {"url": data_url, "detail": "auto"}
+        })
 
-    # Build messages for GPT
+    # Send to GPT
     messages = [
-        {
-            "role": "system",
-            "content": (
-                "You are a video-evaluation system. "
-                "Return valid JSON indicating for each rubric item whether it's present."
-            ),
-        },
-        {"role": "user", "content": user_content},
-        {"role": "system", "content": checklist_instructions},
+        {"role": "system", "content": system_instructions},
+        {"role": "user", "content": user_msg_content},
     ]
 
     try:
         response = client.chat.completions.create(
-            model=config["openai"]["model_name"],
+            model=model_name,
             messages=messages,
             response_format={"type": "json_object"},
             max_completion_tokens=max_tokens,
         )
+        raw_content = response.choices[0].message.content.strip()
     except Exception as e:
-        print("OpenAI API call encountered an error:", e)
-        return "Failed to process frames.", 0, {}
+        error_msg = f"OpenAI API call encountered an error: {e}"
+        return (error_msg, False, {}, "No notes")
 
-    raw_content = response.choices[0].message.content.strip()
+    # 3) Parse GPT's JSON
     try:
         parsed = json.loads(raw_content)
         results = parsed.get("results", [])
+        notes = parsed.get("notes", "")
     except JSONDecodeError:
-        print("Model returned invalid JSON:\n", raw_content)
-        return "Model returned invalid JSON", 0, {}
+        return ("Model returned invalid JSON", False, {}, "No notes")
 
-    # Tally the score
-    # results should look like: [ { "id": "nudity", "present": true }, ... ]
-    checkbox_dict = {}  # to store each item’s boolean
-    total_score = 0
-    for item in rubric_items:
-        # Find result for item['id'] in results
-        found = next((r for r in results if r["id"] == item["id"]), None)
-        if found and found.get("present") is True:
-            total_score += item.get("points", 0)
-            checkbox_dict[item["id"]] = True
-        else:
-            checkbox_dict[item["id"]] = False
+    # Build presence dict
+    presence_dict = {}
+    for elem in required_elements:
+        eid = elem["id"]
+        # Find matching result from GPT
+        found_item = next((r for r in results if r["id"] == eid), None)
+        is_present = found_item.get("present") if found_item else False
+        presence_dict[eid] = bool(is_present)
 
-    details = (
-        "Checklist Evaluation:\n" +
-        "\n".join(
-            f"- {item['id']} => {checkbox_dict[item['id']]} (worth {item['points']} points)"
-            for item in rubric_items
-        )
-        + f"\nTotal Score = {total_score}\n"
-    )
+    # 4) Check if all required elements are present
+    all_satisfied = all(presence_dict.values())
 
-    return details, total_score, checkbox_dict
+    # For logging, build a short summary
+    lines = []
+    lines.append("Checklist Evaluation:")
+    for elem in required_elements:
+        eid = elem["id"]
+        found = presence_dict[eid]
+        lines.append(f" - {eid} => {found}")
+    lines.append(f"All Satisfied? {all_satisfied}")
+    details = "\n".join(lines)
+
+    return (details, all_satisfied, presence_dict, notes)

@@ -1,199 +1,184 @@
-from src.chatgpt_utils import (
-    refine_prompt,
-    reflect_and_improve,
-    generate_rubric_with_checklist
-)
-from src.generate_video import generate_video
-from src.evaluation import evaluate_with_checklist
 import os
 import json
-from datetime import datetime
+
+from src.chatgpt_utils import extract_goal_requirements, refine_unified_prompt
+from src.generate_video import generate_video
+from src.evaluation import evaluate_all_elements
+
+import os
+import json
+from src.chatgpt_utils import extract_goal_requirements, refine_unified_prompt
+from src.generate_video import generate_video
+from src.evaluation import evaluate_all_elements
 
 
-def run_iterations(config, goal, run_directory):
-    # 1) Generate the ordered checklist-based rubric
-    rubric_response = generate_rubric_with_checklist(goal, config)
-    rubric_items = rubric_response.get("rubric_items", [])
-    if not rubric_items:
-        print("No rubric items returned, nothing to do.")
+def run_iterations(config, user_goal, run_directory):
+    # Prepare directories
+    logs_dir = os.path.join(run_directory, "logs")
+    frames_dir = os.path.join(run_directory, "frames")
+    videos_dir = os.path.join(run_directory, "videos")
+    for d in [logs_dir, frames_dir, videos_dir]:
+        os.makedirs(d, exist_ok=True)
+
+    # 1) Extract all required elements
+    requirements_data = extract_goal_requirements(user_goal, config)
+    required_elements = requirements_data.get("elements", [])
+    if not required_elements:
+        print("No elements found in user goal. Exiting.")
         return
 
-    # Save the rubric to run_metadata
+    max_iterations = config["iterations"]["max_iterations"]
+    iteration_count = 0
+    all_satisfied = False
+
+    # This will track iteration logs in-memory, so we can build a final summary at the end
+    iteration_history = []
+
+    # (A) Write run metadata right now, so our final_summary has it.
     run_metadata = {
-        "user_goal": goal,
-        "rubric_items": rubric_items,
+        "user_goal": user_goal,
+        "max_iterations": max_iterations
     }
     with open(os.path.join(run_directory, "run_metadata.json"), "w") as f:
         json.dump(run_metadata, f, indent=2)
 
-    # We’ll keep a boolean array to mark which items have been “locked in” (True = satisfied).
-    locked_in = [False] * len(rubric_items)
-
-    # Basic housekeeping
-    logs_dir = config["logs"]["directory"]
-    frames_dir = config["frames"]["output_directory"]
-    videos_dir = config["video_output_dir"]
-    for d in [logs_dir, frames_dir, videos_dir]:
-        os.makedirs(d, exist_ok=True)
-
-    max_iterations = config["iterations"]["max_iterations"]
-
-    # This is our “current_step,” which points to the item in rubric_items we’re trying to satisfy.
-    current_step = 0
-
-    # Start with some initial text for the first prompt
-    current_prompt = (
-        f"You are solving the following user goal:\n{goal}\n"
-        "Please propose an initial text prompt to achieve it."
-    )
-
-    iteration_count = 0
-    while iteration_count < max_iterations and current_step < len(rubric_items):
+    # Begin iteration loop
+    while iteration_count < max_iterations and not all_satisfied:
         iteration_count += 1
-        print(f"\n=== Iteration {iteration_count} (Working on Step {current_step + 1}) ===")
+        print(f"--- Iteration {iteration_count} ---")
 
-        # A) Refine the prompt
-        refined_prompt_text = refine_prompt(current_prompt, config)
+        history_text = summarize_history(iteration_history)
 
-        # B) Generate the video
-        video_path = generate_video(refined_prompt_text, config, iteration_count)
+        # A) Refine prompt
+        refined_result = refine_unified_prompt(
+            user_goal=user_goal,
+            required_elements=required_elements,
+            config=config,
+            iteration_history=history_text
+        )
+        refined_prompt = refined_result["explicit_scene_description"]
+        chosen_width = refined_result["resolution_width"]
+        chosen_height = refined_result["resolution_height"]
+        iteration_tag = f"unified_{iteration_count}"
 
-        # C) Evaluate with the checklist
-        eval_details, total_score, checkbox_dict = evaluate_with_checklist(
-            video_path, iteration_count, config, goal, rubric_items
+        # B) Generate video
+        video_path = generate_video(
+            prompt=refined_prompt,
+            config=config,
+            iteration=iteration_tag,
+            custom_width=chosen_width,
+            custom_height=chosen_height
         )
 
-        # Let’s see which items are currently found (True) in the new output
-        # We’ll store them in a “current_found” array of booleans
-        current_found = []
-        for i, item in enumerate(rubric_items):
-            present = checkbox_dict.get(item["id"], False)
-            current_found.append(present)
-
-        # D) Check if we lost any locked-in items
-        lost_items = []
-        for i in range(len(rubric_items)):
-            if locked_in[i] and not current_found[i]:
-                # Oops, we lost an item that was previously satisfied!
-                lost_items.append(rubric_items[i]["id"])
-
-        # E) Did we satisfy the item for “current_step” this round?
-        step_item_id = rubric_items[current_step]["id"]
-        step_satisfied_now = current_found[current_step]
-
-        # Build reflection prompt
-        reflection_prompt = (
-            f"Goal: {goal}\n"
-            f"Currently focusing on item #{current_step + 1}: '{rubric_items[current_step]['description']}'\n\n"
-            f"This iteration’s refined prompt:\n{refined_prompt_text}\n"
-            f"Evaluation:\n{eval_details}\n"
-            f"Locked-in items lost: {lost_items}\n"
-            f"Did we succeed in item #{current_step + 1}? {step_satisfied_now}\n\n"
-            "Please reflect on how to keep all previously satisfied items AND satisfy the current step.\n"
-            "Suggest a next prompt accordingly."
+        # C) Evaluate
+        eval_details, all_satisfied, presence_dict, notes = evaluate_all_elements(
+            video_path=video_path,
+            iteration_name=iteration_tag,
+            config=config,
+            user_goal=user_goal,
+            required_elements=required_elements,
+            prev_presence=None
         )
 
-        reflection_text, next_prompt_text = reflect_and_improve(reflection_prompt, config)
-
-        # Create iteration log
+        # D) Log iteration
         iteration_log = {
             "iteration": iteration_count,
-            "current_step": current_step + 1,
-            "prompt_attempted": refined_prompt_text,
+            "prompt_used": refined_prompt,
+            "chosen_width": chosen_width,
+            "chosen_height": chosen_height,
             "video_path": video_path,
-            "evaluation_details": eval_details,
-            "lost_items": lost_items,
-            "step_satisfied_now": step_satisfied_now,
-            "reflection": reflection_text,
-            "suggested_next_prompt": next_prompt_text,
+            "eval_details": eval_details,
+            "notes": notes,
+            "all_satisfied": all_satisfied,
+            "presence_dict": presence_dict,
         }
+        iteration_history.append(iteration_log)
 
-        # Write iteration logs
-        log_filename = os.path.join(logs_dir, f"iteration_{iteration_count}.json")
-        with open(log_filename, "w") as f:
+        # Also write to disk
+        with open(os.path.join(logs_dir, f"iteration_{iteration_count}.json"), "w") as f:
             json.dump(iteration_log, f, indent=2)
 
-        # Print summary
-        print(f"Prompt Attempted: {refined_prompt_text}")
-        print(f"Lost Items: {lost_items}")
-        print(f"Step {current_step + 1} Satisfied?: {step_satisfied_now}")
-        print(f"Reflection: {reflection_text}\nNext Prompt: {next_prompt_text}")
+        if all_satisfied:
+            print(f"All required elements satisfied in {iteration_count} iterations!")
+            break
 
-        # F) Decide how to proceed:
-        if lost_items:
-            # We regressed. We do NOT advance the step. We remain on the same step.
-            # We’ll just pick up next iteration with next_prompt_text as our new prompt,
-            # hoping reflection can fix the regression + achieve the step item.
-            print("Regression detected! Will retry the same step. Not advancing.")
-        else:
-            # No regression. Check if we satisfied the step item.
-            if step_satisfied_now:
-                # Great, we can lock in the step item
-                locked_in[current_step] = True
-                print(f"Success on step {current_step + 1}. Locking it in and moving to the next step.")
-                current_step += 1
-            else:
-                # No regression, but we haven’t satisfied the step item yet
-                print(f"Still missing step {current_step + 1}, will keep trying this step.")
-                # We remain on the same step
+    if not all_satisfied:
+        print(f"Reached max iterations ({max_iterations}) without satisfying all elements.")
 
-        # G) Update the prompt for the next iteration
-        current_prompt = next_prompt_text
-
-    # If we exit the loop, either we reached max_iterations or we satisfied all steps
-    if current_step >= len(rubric_items):
-        print(f"All {len(rubric_items)} steps satisfied by iteration {iteration_count}!")
-    else:
-        print(f"Reached iteration limit {max_iterations} but only completed steps 1..{current_step}.")
-
-    generate_final_summary(run_directory)
+    # Finally, create a summary that actually includes the iteration history
+    generate_final_summary(run_directory, iteration_history)
 
 
-def generate_final_summary(run_directory):
-    # same function as before or adapted. Summarizes logs, etc.
-    logs_dir = os.path.join(run_directory, "logs")
-    summary_file = os.path.join(run_directory, "final_summary.txt")
-
-    run_metadata_path = os.path.join(run_directory, "run_metadata.json")
-    if os.path.exists(run_metadata_path):
-        with open(run_metadata_path, "r") as f:
-            run_metadata = json.load(f)
-    else:
-        run_metadata = {"user_goal": "Unknown", "rubric_items": []}
-
-    user_goal = run_metadata.get("user_goal", "Not found")
-    rubric_items = run_metadata.get("rubric_items", [])
-    iteration_summaries = []
-
-    # Gather iteration logs
-    for filename in sorted(os.listdir(logs_dir)):
-        if filename.endswith(".json"):
-            filepath = os.path.join(logs_dir, filename)
-            with open(filepath, "r") as f:
-                data = json.load(f)
-            iteration_summaries.append(data)
-
-    # Build a readable “one‐pager”
+def summarize_history(iteration_history):
+    if not iteration_history:
+        return "No prior attempts."
     lines = []
-    lines.append("FINAL ONE-PAGER SUMMARY OF THIS RUN")
-    lines.append("====================================")
-    lines.append("")
-    lines.append(f"User Goal: {user_goal}")
-    lines.append("")
-    lines.append("Rubric Items:")
-    for idx, item in enumerate(rubric_items):
-        lines.append(f"{idx + 1}) {item['id']} - {item['description']} ({item['points']} points)")
-    lines.append("")
-    lines.append("Iteration Breakdown\n-------------------")
-    for item in iteration_summaries:
-        lines.append(f"Iteration {item['iteration']} (Step {item['current_step']}):")
-        lines.append(f"  Prompt: {item['prompt_attempted']}")
-        lines.append(f"  Lost Items: {item['lost_items']}")
-        lines.append(f"  Step {item['current_step']} Satisfied?: {item['step_satisfied_now']}")
-        lines.append(f"  Reflection: {item['reflection']}")
+    for it in iteration_history:
+        lines.append(f"Iteration {it['iteration']}:")
+        lines.append(f" Prompt used: {it['prompt_used']}")
+        lines.append(f" Presence results: {it['presence_dict']}")
+        lines.append(f" Notes: {it['notes']}")
         lines.append("")
+    return "\n".join(lines)
 
+
+def summarize_history(iteration_history):
+    """
+    Optional helper function to produce a textual summary of prior iterations:
+    - The prompt used
+    - Which elements were found / missing
+    - GPT's notes
+    """
+    if not iteration_history:
+        return "No prior attempts."
+    lines = []
+    for it in iteration_history:
+        lines.append(f"Iteration {it['iteration']}:")
+        lines.append(f"  Prompt used: {it['prompt_used']}")
+        lines.append(f"  Chosen resolution: {it['chosen_width']} x {it['chosen_height']}")
+        lines.append(f"  Presence results: {it['presence_dict']}")
+        lines.append(f"  Notes: {it['notes']}")
+        lines.append("")
+    return "\n".join(lines)
+
+
+def generate_final_summary(run_directory, iteration_history):
+    """
+    Create a text summary of:
+      1) The user’s overall goal (from run_metadata.json).
+      2) Each iteration’s prompt, presence results, and final success status.
+    """
+    summary_file = os.path.join(run_directory, "final_summary.txt")
+    run_metadata_file = os.path.join(run_directory, "run_metadata.json")
+
+    # Load the user goal from metadata if present
+    if os.path.exists(run_metadata_file):
+        with open(run_metadata_file, "r") as f:
+            run_metadata = json.load(f)
+        user_goal = run_metadata.get("user_goal", "Unknown")
+    else:
+        user_goal = "Unknown"
+
+    lines = []
+    lines.append("FINAL SUMMARY")
+    lines.append("=============")
+    lines.append(f"User's Overall Goal: {user_goal}")
+    lines.append("")
+
+    if not iteration_history:
+        lines.append("No iterations were run.")
+    else:
+        for it in iteration_history:
+            lines.append(f"Iteration {it['iteration']}:")
+            lines.append(f" • Prompt: {it['prompt_used']}")
+            lines.append(f" • Resolution: {it['chosen_width']}x{it['chosen_height']}")
+            lines.append(f" • Presence Check: {it['presence_dict']}")
+            lines.append(f" • Satisfied? {it['all_satisfied']}")
+            lines.append(f" • Notes: {it['notes']}")
+            lines.append("")
+
+    # Write the final summary
     with open(summary_file, "w") as f:
         f.write("\n".join(lines))
 
-    print(f"\nA final one-page summary has been written to: {summary_file}\n")
+    print(f"\nA final summary has been written to:\n  {summary_file}\n")
