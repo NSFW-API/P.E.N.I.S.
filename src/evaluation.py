@@ -140,6 +140,8 @@ def evaluate_all_elements(video_path, iteration_name, config, user_goal, require
             max_completion_tokens=max_tokens,
         )
         raw_content = response.choices[0].message.content.strip()
+        print("\n\nEvaluation:\n---\n")
+        print(raw_content)
     except Exception as e:
         error_msg = f"OpenAI API call encountered an error: {e}"
         return (error_msg, False, {}, "No notes")

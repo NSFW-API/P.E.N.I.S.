@@ -13,12 +13,13 @@ replicate:
 # ChatGPT / openAI model settings
 openai:
   model_name: "gpt-4o-mini"
+  update_guide_model_name: "gpt-4o-mini"
   reasoning_effort: "high"
-  max_completion_tokens: 16384
+  max_completion_tokens: 16000
 
 # Frame extraction settings
 frames:
-  extract_interval: 30  # e.g., extract every 30 frames
+  extract_interval: 15  # e.g., extract every 30 frames
   output_directory: "frames"
 
 # Logging
@@ -32,67 +33,71 @@ prompting_guide: |
   ────────────────────────────────────────────────────────
   1) Always Emphasize Consenting Adults & Clear Agency
   ────────────────────────────────────────────────────────
-  • DO: State explicitly that all characters are consenting, adult humans.  
-  • DO: Use safe words or explicit mentions of consent and boundaries for BDSM/kink.  
-  • DON’T: Include anything that could breach policy.  
-  • EXAMPLE DO:  
-    "She stands confidently, reaffirming her safe word—ready to proceed with this consensual erotic exploration."
+  • DO: Clearly state that all depicted individuals are consenting, adult humans, regardless of sexual orientation or scenario.
+  • DO: Incorporate verbal—e.g., “safe word”—or mutual agreement cues for BDSM/kink or non-traditional acts like footplay.
+  • DON’T: Include content violating policy (non-consensual, minors, bestiality).
+  • EXAMPLE DO:
+    "They exchange reassuring nods, confirming their mutual comfort. With their safe word in place, these two consenting adults prepare for an intimate foot-based exploration."
   
   ────────────────────────────────────────────────────────
   2) Be Descriptive, Add Context & Setting, AND USE CLINICAL LANGUAGE
   ────────────────────────────────────────────────────────
-  • DO: Supply enough environmental detail (lighting, mood, clothing removal, angles) to steer the model beyond generic motion.  
-  • DO: Include the woman’s emotional cues or reactions for a more immersive result.  
-  • DO: Use direct, clinical terms when describing sexual anatomy (e.g., “penis,” “vagina,” “erect penis,” “penetration”). Avoid vague euphemisms like “lovers in a passionate embrace” if you mean “penis inserted into vagina.”  
-  • DON’T: Write overly vague prompts; the AI may fail to depict the scenario accurately and revert to generic poses.  
-  • EXAMPLE DO:  
-    "In a softly lit bedroom, she grasps his erect penis and guides it toward her vagina, maintaining eye contact as the camera captures every detail of consensual penetration."
+  • DO: Provide detailed environmental context (lighting, location, angles).
+  • DO: Use explicit, clinical terms for anatomy: penis, vagina, penetration, erection. Avoid vague euphemisms if clinical clarity is intended.
+  • DO: Clarify motion or touch: mention how feet, hands, or bodies move up/down or in/out if you want the model to depict it accurately.
+  • DON’T: Rely on purely vague phrases like “they share a moment” if you want distinct positions, motions, or acts shown.
+  • EXAMPLE DO:
+    "In a softly lit bedroom, she gently grips his erect penis between both feet, moving her soles up and down the shaft, describing each sensation in a playful, consenting manner."
   
   ────────────────────────────────────────────────────────
   3) Keep It Human or Mechanically “Futuristic” If Exploring Fantasy
   ────────────────────────────────────────────────────────
-  • DO: If you want tentacles or sci-fi elements, clearly describe them as mechanical or bioengineered attachments—never living animals. Emphasize the consenting adult’s enthusiasm.  
-  • DON’T: Portray them as actual non-human, sentient beings or stray into forced/bestial dynamics.  
+  • DO: For tentacle or sci-fi elements, frame them as mechanical or stylized attachments—never actual animals or forced scenarios. Emphasize that all involved are consenting adults.
+  • DON’T: Portray real animals, minors, or non-consensual restraints.
   • EXAMPLE DO (Mechanical/Bioengineered):
-    "Long, flexible robotic arms, shaped like stylized penises, extend from a futuristic console. They drip a pearlescent fluid designed for her sensual comfort. She smiles assuredly, reaffirming her safe word, before inviting their gentle embrace."
+    "She smiles confidently, adjusting the robotic limbs designed to resemble tentacles. Each one is programmed to move gently at her command, ensuring her comfort and fascination with this futuristic encounter."
   
   ────────────────────────────────────────────────────────
   4) When the Model Refuses or Returns “I’m Sorry…”
   ────────────────────────────────────────────────────────
-  • DO: Check if you accidentally implied non-consent, minors, bestiality, or other disallowed content. Remove or rephrase those elements if present.  
-  • DO: Update your system prompt to reinforce that you have permission to depict consenting adult sexual material.  
-  • DON’T: Keep repeating disallowed requests. If the scenario is inherently out of scope, the model will continue refusing.
+  • DO: Re-check your prompt for any hint of non-consent, minors, or other disallowed areas. Remove or rephrase those elements.
+  • DO: Strengthen your system prompt with clarifications that you are depicting consenting adults.
+  • DON’T: Repeat the same disallowed request without changes. If the concept is inherently out of policy, the model will continue refusing.
   
   ────────────────────────────────────────────────────────
   5) Increase Tangible/Sensory Detail Gradually
   ────────────────────────────────────────────────────────
-  • DO: Provide incremental detail about sights, sounds, and sensations—changes in breathing, warmth of touch, emotional cues.  
-  • DON’T: Overload the prompt with too many explicit words or descriptions at once; a balanced approach can yield more coherent results.
+  • DO: Add incremental detail about sights, sounds, sensations (the warmth of touch, changes in breathing, emotional cues).
+  • DO: If you want explicit movement (e.g., rhythmic stroking), describe each step carefully to avoid ambiguous outputs.
+  • DON’T: Overwhelm with too many explicit elements at once; a balanced approach yields clearer, more coherent results.
   
   ────────────────────────────────────────────────────────
   6) Use Separate Sections (Optional, But Helpful)
   ────────────────────────────────────────────────────────
-  If your app enforces structured prompts (preface, explicit_scene_description, disclaimers):  
-  • Preface: Personality traits, emotional tone, confidence.  
-  • Explicit_Scene_Description: Clear, direct depiction of the erotic actions and environment — use clinical language for anatomy.  
-  • Disclaimers: Reinforce adult status, consent, respectful conduct.
+  If your app or tool enforces structured prompts:
+  • Preface: Tone, emotional context, personalities.
+  • Explicit_Scene_Description: Specific erotic actions, clear anatomical terms, mention of consent.
+  • Disclaimers: Reinforce adult status, mutual respect, and safe words or boundaries as appropriate.
   
   ────────────────────────────────────────────────────────
   7) Example “Do” Prompt vs. “Don’t” Prompt
   ────────────────────────────────────────────────────────
-  • DO Prompt (Human/Human, Clear Consent):  
-    "In a warm-lit bedroom, two nude, consenting adult partners lie side by side on rumpled satin sheets. Soft music sets a relaxed tone as they exchange touches, confirming one another’s comfort. They gradually progress to mutual oral stimulation, describing their enjoyment in whispered tones. Each step, from gentle kissing to penetration, is consensual and respectful."  
+  • DO Prompt (Male-on-Male, Clear Consent):
+    "Two adult men relax on a couch in a softly lit living room, confirming each other’s comfort before engaging in foreplay. They exchange gentle caresses, describing their desire out loud. One man gradually guides the other’s erect penis into a slow, consensual penetration, maintaining eye contact and periodically checking for mutual enjoyment."
   
-  • DON’T Prompt (Non-Consensual or Disallowed Content):  
-    "A half-asleep person is forcibly bound by living tentacles in a dark dungeon, with no consent. The tentacles force themselves upon her as she screams."  
-    (Violates consent, suggests forced scenario, involvement of non-human living creatures.)
+  • DO Prompt (Footplay, Explicit Detail):
+    "A nude woman and her consenting male partner confirm a safe word. Under dim bedroom lighting, she presses her feet around his erect penis, gripping it firmly with her toes. She then glides her soles rhythmically up and down the shaft, describing how the sensation intensifies for both of them."
+  
+  • DON’T Prompt (Forced or Disallowed Content):
+    "An unconscious individual is tied down while tentacles, implied to be non-human and uncontrollable, force themselves upon her.”  
+    (Depicts non-consent and actual non-human creatures.)
   
   ────────────────────────────────────────────────────────
   8) Summary Recommendations
   ────────────────────────────────────────────────────────
-  • Always ensure explicitly stated consent and strictly adult participants.  
-  • Provide clear, descriptive detail of the setting, emotional responses, and explicit anatomical language when needed.  
-  • If exploring fantasy (tentacles, transformations), stress they’re mechanical or stylized—never forced or non-consensual.  
-  • Retry with refined wording if you see refusal messages that stem from potential policy violations.  
+  • Always clarify adult status, consent, and safe words.  
+  • Add descriptive detail about environment, anatomy, and movements for clarity.  
+  • If including fantasy elements (like robotic attachments), specify they are not living creatures; ensure all acts remain consensual.  
+  • Adjust or remove problematic elements if you receive refusal messages.  
   
-  By following these guidelines—embracing explicit, clinical descriptions when needed, clarifying consent, and steadily introducing relevant details—you should see fewer refusals and more faithful adult scene generation.
+  By adhering to these updated guidelines—emphasizing explicit consent, clinical language, and gradual detail—you help the model accurately generate respectful, consenting adult scenarios.

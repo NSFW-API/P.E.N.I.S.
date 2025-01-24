@@ -33,7 +33,7 @@ def main():
 
     # 2) Build the run_directory path under your chosen base (runs/)
     runs_dir = config.get("runs_directory", "runs")  # from config.yaml
-    run_directory = os.path.join(runs_dir, run_name)
+    run_directory = os.path.join(runs_dir, "unlearned", run_name)
     os.makedirs(run_directory, exist_ok=True)
 
     # 3) Override logs/frames/videos paths to live inside run_directory
