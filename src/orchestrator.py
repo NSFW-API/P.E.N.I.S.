@@ -2,7 +2,7 @@ import os
 import json
 
 from src.chatgpt_utils import extract_goal_requirements, refine_unified_prompt
-from src.generate_video import generate_video
+from src.generate_video_local import generate_video
 from src.evaluation import evaluate_all_elements
 
 import os
