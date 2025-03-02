@@ -47,6 +47,8 @@ comfyui:
   # lora2 配置：模型文件路径及其权重
   lora_2: "Hunyuan/Motion/BreastMassage.safetensors"
   lora_2_strength: 0
+  # shift 
+  shift: 7.5
 
 prompting_guide: |
   ────────────────────────────────────────────────────────
