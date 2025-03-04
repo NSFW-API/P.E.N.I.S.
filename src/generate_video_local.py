@@ -1,4 +1,4 @@
-def generate_video(prompt, config, iteration, custom_width=480, custom_height=848):
+def generate_video(prompt, config, iteration, custom_width=512, custom_height=512):
     """
     通过本地 ComfyUI 服务生成视频（同步等待任务完成，并拷贝生成的文件）。
     
@@ -24,9 +24,11 @@ def generate_video(prompt, config, iteration, custom_width=480, custom_height=84
     """
    
     # FIX IT HERE
-    custom_width=320
-    custom_height=560
-    
+    custom_width=config.get("comfyui", {}).get("custom_width", 320)
+    custom_height=config.get("comfyui", {}).get("custom_height", 320)
+    # print("custom_width:",custom_width)
+    # print("custom_height:",custom_height)
+
     # print(iteration,custom_width,custom_height)
     # print(config)
     import json
@@ -469,29 +471,25 @@ def generate_video(prompt, config, iteration, custom_width=480, custom_height=84
 
     # 更新采样步数（节点 "17"）
     workflow["17"]["inputs"]["steps"] = config.get("comfyui", {}).get("steps", 6)
-    print("steps:",config.get("comfyui", {}).get("steps", 6))
+    # print("steps:",config.get("comfyui", {}).get("steps", 6))
 
     # 更新 lora1 和 lora2 模型路径及其权重（strength）均从 config 中读取
     if "lora_1" in config["comfyui"]:
-        print("lora 1.....")
         workflow["256"]["inputs"]["lora_name"] = config["comfyui"]["lora_1"]
         if "lora_1_strength" in config["comfyui"]:
-            print("lora_1_strength 1.....")
             workflow["256"]["inputs"]["strength"] = config["comfyui"]["lora_1_strength"]
     if "lora_2" in config["comfyui"]:
-        print("lora 2.....")
         workflow["252"]["inputs"]["lora_name"] = config["comfyui"]["lora_2"]
         if "lora_2_strength" in config["comfyui"]:
-            print("lora_2_strength 2.....")
             workflow["252"]["inputs"]["strength"] = config["comfyui"]["lora_2_strength"]
             
-    print("lora2 st:", config["comfyui"]["lora_2_strength"])
-    print("lora1:",config["comfyui"]["lora_1"])
-    print("lora1 s:",config["comfyui"]["lora_1_strength"])
+    # print("lora2 st:", config["comfyui"]["lora_2_strength"])
+    # print("lora1:",config["comfyui"]["lora_1"])
+    # print("lora1 s:",config["comfyui"]["lora_1_strength"])
 
 
     workflow["67"]["inputs"]["shift"] = config.get("comfyui", {}).get("shift", 7.5)
-    print("shift :",config["comfyui"]["shift"])
+    # print("shift :",config["comfyui"]["shift"])
 
 
     # 构造存储路径（ComfyUI 生成文件时使用的前缀）
@@ -543,7 +541,7 @@ def generate_video(prompt, config, iteration, custom_width=480, custom_height=84
         try:
             with request.urlopen(history_url) as hist_res:
                 hist_response = hist_res.read().decode("utf-8")
-                print(hist_response)
+                #print(hist_response)
             history_data = json.loads(hist_response)
         except Exception as e:
             print("[WARN] 获取任务状态失败:", e)
@@ -561,7 +559,8 @@ def generate_video(prompt, config, iteration, custom_width=480, custom_height=84
         elif status_str.lower() == "failed":
             raise RuntimeError("ComfyUI 任务失败！")
         else:
-            print("[INFO] 等待任务完成，当前状态:", status_str)
+            # print("[INFO] 等待任务完成，当前状态:", status_str)
+            print('.', end='', flush=True)
             time.sleep(5)
 
     # 任务完成后，将 ComfyUI 生成的视频文件从 base_output_dir 拷贝到目标目录

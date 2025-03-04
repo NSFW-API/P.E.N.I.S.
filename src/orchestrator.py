@@ -8,11 +8,17 @@ from src.evaluation import evaluate_all_elements
 import os
 import json
 from src.chatgpt_utils import extract_goal_requirements, refine_unified_prompt
-from src.generate_video import generate_video
+# from src.generate_video_local import generate_video
+# from src.generate_video import generate_video
+
 from src.evaluation import evaluate_all_elements
 
-
-def run_iterations(config, user_goal, run_directory):
+def run_iterations(config, user_goal, run_directory, gen_engine = "replciate"):
+    if gen_engine == "replciate":
+        from src.generate_video import generate_video
+    if gen_engine == "local_comfyui":
+        from src.generate_video_local import generate_video
+    
     # Prepare directories
     logs_dir = os.path.join(run_directory, "logs")
     frames_dir = os.path.join(run_directory, "frames")

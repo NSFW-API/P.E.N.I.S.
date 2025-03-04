@@ -38,18 +38,22 @@ comfyui:
   client_id: "default_client"
   # 视频生成相关参数
   video_length: 129
+  custom_width: 320
+  custom_height: 560 
   steps: 12
   # 可选的 lora 前缀（用于构造 prompt 文本）
-  lora: "myvgirl01x"
+  lora_1_trigger: "myvgirl01x"
+  lora_2_trigger: ""
   # lora1 配置：模型文件路径及其权重
   lora_1: "Hunyuan/MY/myvgirl01x-converted.safetensors"
   lora_1_strength: 1.3
   # lora2 配置：模型文件路径及其权重
   lora_2: "Hunyuan/Motion/BreastMassage.safetensors"
-  lora_2_strength: 0
+  lora_2_strength: 1
   # shift 
   shift: 7.5
-
+  
+  
 prompting_guide: |
   ────────────────────────────────────────────────────────
   1) Always Emphasize Consenting Adults & Clear Agency
