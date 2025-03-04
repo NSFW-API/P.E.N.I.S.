@@ -110,8 +110,8 @@ def refine_unified_prompt(user_goal, required_elements, config, iteration_histor
     }}
     
     Constraints/Requirements:
-    1) resolution_width and resolution_height must be integers between 100 and 512 (inclusive). You can change this at any time, learning frome each iteration what works and what doesn't.
-    2) The video generation model is highly sensitive to aspect ratio; feel free to experiment with different width/height pairs that suit the scene. For example, a person standing upright might benefit from a portrait style (e.g., 300×512), while a lying-down shot could work better in a landscape format (e.g., 512×220). Non-standard aspect ratios like 135×246 are also encouraged if they help produce the desired result, so long as each dimension stays within 100–512.  
+    1) resolution_width and resolution_height Only three resolutions: 480x848, 576x1024, and 720x1280. You can change this at any time, learning frome each iteration what works and what doesn't.
+    2) The video generation model is highly sensitive to aspect ratio; feel free to experiment with different width/height pairs that suit the scene. For example, a person standing upright might benefit from a portrait style (e.g., 480x848), while a lying-down shot could work better in a landscape format (e.g., 576x1024 or 720x1280).  
     3) Make sure the "explicit_scene_description" includes all required elements missed before, and fix any issues gleaned from the conversation history.  
     4) "preface" sets the style or mood of the scene, such as how strong and confident and secure in her femininity the actors are.  
     5) "disclaimers" can mention consenting adults, no minors, etc., if needed.

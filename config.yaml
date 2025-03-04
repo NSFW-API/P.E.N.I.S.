@@ -1,4 +1,5 @@
 runs_directory: "runs"  # where each run subfolder is created
+
 # High-level iterative loop settings
 iterations:
   max_iterations: 10
@@ -29,6 +30,30 @@ logs:
 # Other
 video_output_dir: "videos"
 
+# ComfyUI local service settings for video generation
+comfyui:
+  # ComfyUI 服务接口地址
+  api_url: "http://127.0.0.1:6006/api/prompt"
+  # 客户端标识
+  client_id: "default_client"
+  # 视频生成相关参数
+  video_length: 129
+  custom_width: 320
+  custom_height: 560 
+  steps: 12
+  # 可选的 lora 前缀（用于构造 prompt 文本）
+  lora_1_trigger: "myvgirl01x"
+  lora_2_trigger: ""
+  # lora1 配置：模型文件路径及其权重
+  lora_1: "Hunyuan/MY/myvgirl01x-converted.safetensors"
+  lora_1_strength: 1.3
+  # lora2 配置：模型文件路径及其权重
+  lora_2: "Hunyuan/Motion/BreastMassage.safetensors"
+  lora_2_strength: 1
+  # shift 
+  shift: 7.5
+  
+  
 prompting_guide: |
   ────────────────────────────────────────────────────────
   1) Always Emphasize Consenting Adults & Clear Agency
@@ -98,6 +123,4 @@ prompting_guide: |
   • Always clarify adult status, consent, and safe words.  
   • Add descriptive detail about environment, anatomy, and movements for clarity.  
   • If including fantasy elements (like robotic attachments), specify they are not living creatures; ensure all acts remain consensual.  
-  • Adjust or remove problematic elements if you receive refusal messages.  
-  
-  By adhering to these updated guidelines—emphasizing explicit consent, clinical language, and gradual detail—you help the model accurately generate respectful, consenting adult scenarios.
+  • Adjust or remove problematic elements if you receive refusal messages.

@@ -1,0 +1,989 @@
+{
+  "10": {
+    "inputs": {
+      "vae_name": "hunyuan_video_vae_bf16.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "11": {
+    "inputs": {
+      "clip_name1": "clip_l.safetensors",
+      "clip_name2": "llava_llama3_fp8_scaled.safetensors",
+      "type": "hunyuan_video",
+      "device": "default"
+    },
+    "class_type": "DualCLIPLoader",
+    "_meta": {
+      "title": "DualCLIPLoader"
+    }
+  },
+  "12": {
+    "inputs": {
+      "unet_name": "hunyuan_video_FastVideo_720_fp8_e4m3fn.safetensors",
+      "weight_dtype": "fp8_e4m3fn"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "16": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "KSamplerSelect"
+    }
+  },
+  "17": {
+    "inputs": {
+      "scheduler": "beta",
+      "steps": 12,
+      "denoise": 1,
+      "model": [
+        "252",
+        0
+      ]
+    },
+    "class_type": "BasicScheduler",
+    "_meta": {
+      "title": "BasicScheduler"
+    }
+  },
+  "22": {
+    "inputs": {
+      "model": [
+        "67",
+        0
+      ],
+      "conditioning": [
+        "26",
+        0
+      ]
+    },
+    "class_type": "BasicGuider",
+    "_meta": {
+      "title": "BasicGuider"
+    }
+  },
+  "25": {
+    "inputs": {
+      "noise_seed": [
+        "308",
+        0
+      ]
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "Noise"
+    }
+  },
+  "26": {
+    "inputs": {
+      "guidance": 4,
+      "conditioning": [
+        "44",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "Guidance"
+    }
+  },
+  "44": {
+    "inputs": {
+      "text": [
+        "395",
+        0
+      ],
+      "clip": [
+        "11",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "67": {
+    "inputs": {
+      "shift": 7.5,
+      "model": [
+        "252",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingSD3",
+    "_meta": {
+      "title": "Shift"
+    }
+  },
+  "73": {
+    "inputs": {
+      "tile_size": 128,
+      "overlap": 64,
+      "temporal_size": 64,
+      "temporal_overlap": 8,
+      "samples": [
+        "243",
+        0
+      ],
+      "vae": [
+        "10",
+        0
+      ]
+    },
+    "class_type": "VAEDecodeTiled",
+    "_meta": {
+      "title": "VAE Decode (Tiled)"
+    }
+  },
+  "106": {
+    "inputs": {
+      "sharpen_radius": 1,
+      "sigma": 0.43,
+      "alpha": 0.5,
+      "image": [
+        "73",
+        0
+      ]
+    },
+    "class_type": "ImageSharpen",
+    "_meta": {
+      "title": "Image Sharpen"
+    }
+  },
+  "128": {
+    "inputs": {
+      "tile_size": 128,
+      "overlap": 64,
+      "temporal_size": 64,
+      "temporal_overlap": 8,
+      "samples": [
+        "337",
+        1
+      ],
+      "vae": [
+        "10",
+        0
+      ]
+    },
+    "class_type": "VAEDecodeTiled",
+    "_meta": {
+      "title": "VAE Decode (Tiled)"
+    }
+  },
+  "130": {
+    "inputs": {
+      "frame_rate": 25,
+      "loop_count": 0,
+      "filename_prefix": "Hunyuan_upscl",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 13,
+      "save_metadata": true,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": false,
+      "images": [
+        "194",
+        0
+      ],
+      "vae": [
+        "10",
+        0
+      ]
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": {
+      "title": "Video Combine 🎥🅥🅗🅢"
+    }
+  },
+  "131": {
+    "inputs": {
+      "scheduler": "beta",
+      "steps": 6,
+      "denoise": 0.45,
+      "model": [
+        "252",
+        0
+      ]
+    },
+    "class_type": "BasicScheduler",
+    "_meta": {
+      "title": "BasicScheduler"
+    }
+  },
+  "133": {
+    "inputs": {
+      "anything": [
+        "243",
+        0
+      ]
+    },
+    "class_type": "easy cleanGpuUsed",
+    "_meta": {
+      "title": "Clean VRAM Used"
+    }
+  },
+  "134": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "KSamplerSelect"
+    }
+  },
+  "180": {
+    "inputs": {
+      "CLIP": [
+        "11",
+        0
+      ],
+      "VAE": [
+        "10",
+        0
+      ]
+    },
+    "class_type": "Anything Everywhere3",
+    "_meta": {
+      "title": "Anything Everywhere3"
+    }
+  },
+  "193": {
+    "inputs": {
+      "detail_amount": 0,
+      "start": 0.2,
+      "end": 0.8,
+      "bias": 0.5,
+      "exponent": 1,
+      "start_offset": 0,
+      "end_offset": 0,
+      "fade": 0,
+      "smooth": true,
+      "cfg_scale_override": 0,
+      "sampler": [
+        "134",
+        0
+      ]
+    },
+    "class_type": "DetailDaemonSamplerNode",
+    "_meta": {
+      "title": "Detail Daemon Sampler"
+    }
+  },
+  "194": {
+    "inputs": {
+      "sharpen_radius": 1,
+      "sigma": 0.39,
+      "alpha": 0.46,
+      "image": [
+        "128",
+        0
+      ]
+    },
+    "class_type": "ImageSharpen",
+    "_meta": {
+      "title": "Image Sharpen"
+    }
+  },
+  "196": {
+    "inputs": {
+      "guidance": 7.5,
+      "conditioning": [
+        "44",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "Guidance"
+    }
+  },
+  "197": {
+    "inputs": {
+      "shift": 4,
+      "model": [
+        "252",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingSD3",
+    "_meta": {
+      "title": "ModelSamplingSD3"
+    }
+  },
+  "198": {
+    "inputs": {
+      "model": [
+        "197",
+        0
+      ],
+      "conditioning": [
+        "196",
+        0
+      ]
+    },
+    "class_type": "BasicGuider",
+    "_meta": {
+      "title": "BasicGuider"
+    }
+  },
+  "200": {
+    "inputs": {
+      "model": [
+        "207",
+        0
+      ],
+      "conditioning": [
+        "206",
+        0
+      ]
+    },
+    "class_type": "BasicGuider",
+    "_meta": {
+      "title": "BasicGuider"
+    }
+  },
+  "201": {
+    "inputs": {
+      "anything": [
+        "243",
+        0
+      ]
+    },
+    "class_type": "easy cleanGpuUsed",
+    "_meta": {
+      "title": "Clean VRAM Used"
+    }
+  },
+  "202": {
+    "inputs": {
+      "frame_rate": 25,
+      "loop_count": 0,
+      "filename_prefix": "Hunyuan_refined",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 13,
+      "save_metadata": true,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": false,
+      "images": [
+        "205",
+        0
+      ],
+      "vae": [
+        "10",
+        0
+      ]
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": {
+      "title": "Video Combine 🎥🅥🅗🅢"
+    }
+  },
+  "203": {
+    "inputs": {
+      "detail_amount": 0.15,
+      "start": 0.2,
+      "end": 0.8,
+      "bias": 0.5,
+      "exponent": 1,
+      "start_offset": 0,
+      "end_offset": 0,
+      "fade": 0,
+      "smooth": true,
+      "cfg_scale_override": 0,
+      "sampler": [
+        "204",
+        0
+      ]
+    },
+    "class_type": "DetailDaemonSamplerNode",
+    "_meta": {
+      "title": "Detail Daemon Sampler"
+    }
+  },
+  "204": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "KSamplerSelect"
+    }
+  },
+  "205": {
+    "inputs": {
+      "sharpen_radius": 1,
+      "sigma": 0.39,
+      "alpha": 0.46,
+      "image": [
+        "210",
+        0
+      ]
+    },
+    "class_type": "ImageSharpen",
+    "_meta": {
+      "title": "Image Sharpen"
+    }
+  },
+  "206": {
+    "inputs": {
+      "guidance": 7.5,
+      "conditioning": [
+        "44",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "Guidance"
+    }
+  },
+  "207": {
+    "inputs": {
+      "shift": 17,
+      "model": [
+        "252",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingSD3",
+    "_meta": {
+      "title": "ModelSamplingSD3"
+    }
+  },
+  "208": {
+    "inputs": {
+      "scheduler": "beta",
+      "steps": 4,
+      "denoise": 0.32,
+      "model": [
+        "252",
+        0
+      ]
+    },
+    "class_type": "BasicScheduler",
+    "_meta": {
+      "title": "BasicScheduler"
+    }
+  },
+  "210": {
+    "inputs": {
+      "tile_size": 128,
+      "overlap": 64,
+      "temporal_size": 64,
+      "temporal_overlap": 8,
+      "samples": [
+        "340",
+        1
+      ],
+      "vae": [
+        "10",
+        0
+      ]
+    },
+    "class_type": "VAEDecodeTiled",
+    "_meta": {
+      "title": "VAE Decode (Tiled)"
+    }
+  },
+  "232": {
+    "inputs": {
+      "width": 320,
+      "height": 560,
+      "length": 129,
+      "batch_size": 1
+    },
+    "class_type": "EmptyHunyuanLatentVideo",
+    "_meta": {
+      "title": "EmptyHunyuanLatentVideo"
+    }
+  },
+  "243": {
+    "inputs": {
+      "select": 0,
+      "on_missing": "next",
+      "input_2": [
+        "332",
+        1
+      ],
+      "input_3": [
+        "232",
+        0
+      ]
+    },
+    "class_type": "Big Latent Switch [Dream]",
+    "_meta": {
+      "title": "⭆ Big Latent Switch"
+    }
+  },
+  "252": {
+    "inputs": {
+      "lora_name": "Hunyuan/Motion/b0ut1n3styl3_v1.safetensors",
+      "strength": 0.8,
+      "blocks_type": "double_blocks",
+      "model": [
+        "256",
+        0
+      ]
+    },
+    "class_type": "HunyuanVideoLoraLoader",
+    "_meta": {
+      "title": "Hunyuan Video LoRA Loader"
+    }
+  },
+  "253": {
+    "inputs": {
+      "lora_name": "Hunyuan/hyvideo_FastVideo_LoRA-fp8.safetensors",
+      "strength": -0.25,
+      "blocks_type": "all",
+      "model": [
+        "12",
+        0
+      ]
+    },
+    "class_type": "HunyuanVideoLoraLoader",
+    "_meta": {
+      "title": "Hunyuan Video LoRA Loader"
+    }
+  },
+  "256": {
+    "inputs": {
+      "lora_name": "Hunyuan/MY/myvgirl02x-converted.safetensors",
+      "strength": 1.3,
+      "blocks_type": "double_blocks",
+      "model": [
+        "253",
+        0
+      ]
+    },
+    "class_type": "HunyuanVideoLoraLoader",
+    "_meta": {
+      "title": "Hunyuan Video LoRA Loader"
+    }
+  },
+  "260": {
+    "inputs": {
+      "upscale_method": "bilinear",
+      "width": [
+        "264",
+        0
+      ],
+      "height": [
+        "266",
+        0
+      ],
+      "crop": "center",
+      "samples": [
+        "133",
+        0
+      ]
+    },
+    "class_type": "LatentUpscale",
+    "_meta": {
+      "title": "Upscale Latent"
+    }
+  },
+  "264": {
+    "inputs": {
+      "value": "16 * round((a * b) / 16)",
+      "a": [
+        "341",
+        0
+      ]
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "🔧 Simple Math"
+    }
+  },
+  "266": {
+    "inputs": {
+      "value": "16 * round((a * b) / 16)",
+      "a": [
+        "341",
+        1
+      ],
+      "b": [
+        "269",
+        0
+      ]
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "🔧 Simple Math"
+    }
+  },
+  "269": {
+    "inputs": {
+      "Xi": 1,
+      "Xf": 1.6,
+      "isfloatX": 1
+    },
+    "class_type": "mxSlider",
+    "_meta": {
+      "title": "Upscale Factor"
+    }
+  },
+  "294": {
+    "inputs": {
+      "select": 2,
+      "on_missing": "previous",
+      "input_0": [
+        "106",
+        0
+      ],
+      "input_1": [
+        "194",
+        0
+      ],
+      "input_2": [
+        "205",
+        0
+      ]
+    },
+    "class_type": "Big Image Switch [Dream]",
+    "_meta": {
+      "title": "⭆ Big Image Switch"
+    }
+  },
+  "296": {
+    "inputs": {
+      "message": "ONE TASK COMPLETED!",
+      "mode": "always",
+      "any": [
+        "106",
+        0
+      ]
+    },
+    "class_type": "SystemNotification|pysssss",
+    "_meta": {
+      "title": "Notification1 🐍"
+    }
+  },
+  "297": {
+    "inputs": {
+      "message": "Upscale with HUN completed",
+      "mode": "always",
+      "any": [
+        "194",
+        0
+      ]
+    },
+    "class_type": "SystemNotification|pysssss",
+    "_meta": {
+      "title": "Notification1 🐍"
+    }
+  },
+  "298": {
+    "inputs": {
+      "message": "Refine Completed",
+      "mode": "always",
+      "any": [
+        "205",
+        0
+      ]
+    },
+    "class_type": "SystemNotification|pysssss",
+    "_meta": {
+      "title": "Notification1 🐍"
+    }
+  },
+  "300": {
+    "inputs": {
+      "message": "interpolation completed",
+      "mode": "always",
+      "any": [
+        "356",
+        0
+      ]
+    },
+    "class_type": "SystemNotification|pysssss",
+    "_meta": {
+      "title": "Notification1 🐍"
+    }
+  },
+  "302": {
+    "inputs": {
+      "ckpt_name": "rife49.pth",
+      "clear_cache_after_n_frames": 20,
+      "multiplier": 2,
+      "fast_mode": true,
+      "ensemble": true,
+      "scale_factor": 1,
+      "frames": [
+        "294",
+        0
+      ]
+    },
+    "class_type": "RIFE VFI",
+    "_meta": {
+      "title": "interpolation"
+    }
+  },
+  "305": {
+    "inputs": {
+      "frame_rate": 50,
+      "loop_count": 0,
+      "filename_prefix": "Hunyuan_interpolated",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 13,
+      "save_metadata": true,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": true,
+      "images": [
+        "356",
+        0
+      ],
+      "vae": [
+        "10",
+        0
+      ]
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": {
+      "title": "Video Combine 🎥🅥🅗🅢"
+    }
+  },
+  "306": {
+    "inputs": {
+      "text": "myvgirl02x,in b0ut1n3styl3, High quality video of The beautiful woman stands gracefully by the edge of the modern pool, wearing a stylish bikini that highlights her curves. The sunlight casts a warm glow on her skin, creating a captivating atmosphere. She strikes an alluring pose, her posture showcasing confidence and elegance as she gazes into the distance, a playful smile hinting at her enjoyment of the moment.",
+      "seed": [
+        "308",
+        0
+      ],
+      "autorefresh": "Yes"
+    },
+    "class_type": "DPRandomGenerator",
+    "_meta": {
+      "title": "Random Prompts"
+    }
+  },
+  "307": {
+    "inputs": {
+      "output": "",
+      "source": [
+        "395",
+        0
+      ]
+    },
+    "class_type": "Display Any (rgthree)",
+    "_meta": {
+      "title": "Prompt Check"
+    }
+  },
+  "308": {
+    "inputs": {
+      "seed": [
+        "392",
+        0
+      ]
+    },
+    "class_type": "Seed Generator",
+    "_meta": {
+      "title": "Seed Generator"
+    }
+  },
+  "332": {
+    "inputs": {
+      "speedup": "Original (1x)",
+      "enable_custom_speed": false,
+      "custom_speed": 1,
+      "noise": [
+        "25",
+        0
+      ],
+      "guider": [
+        "22",
+        0
+      ],
+      "sampler": [
+        "16",
+        0
+      ],
+      "sigmas": [
+        "17",
+        0
+      ],
+      "latent_image": [
+        "232",
+        0
+      ]
+    },
+    "class_type": "TeaCacheHunyuanVideoSampler",
+    "_meta": {
+      "title": "TeaCache HunyuanVideo Sampler"
+    }
+  },
+  "337": {
+    "inputs": {
+      "speedup": "Ultra Fast (3.2x)",
+      "enable_custom_speed": false,
+      "custom_speed": 1,
+      "noise": [
+        "25",
+        0
+      ],
+      "guider": [
+        "198",
+        0
+      ],
+      "sampler": [
+        "193",
+        0
+      ],
+      "sigmas": [
+        "131",
+        0
+      ],
+      "latent_image": [
+        "260",
+        0
+      ]
+    },
+    "class_type": "TeaCacheHunyuanVideoSampler",
+    "_meta": {
+      "title": "TTP_TeaCache HunyuanVideo Sampler"
+    }
+  },
+  "340": {
+    "inputs": {
+      "speedup": "Shapeless Fast (4.4x)",
+      "enable_custom_speed": false,
+      "custom_speed": 1,
+      "noise": [
+        "25",
+        0
+      ],
+      "guider": [
+        "200",
+        0
+      ],
+      "sampler": [
+        "203",
+        0
+      ],
+      "sigmas": [
+        "208",
+        0
+      ],
+      "latent_image": [
+        "350",
+        0
+      ]
+    },
+    "class_type": "TeaCacheHunyuanVideoSampler",
+    "_meta": {
+      "title": "TTP_TeaCache HunyuanVideo Sampler"
+    }
+  },
+  "341": {
+    "inputs": {
+      "image": [
+        "106",
+        0
+      ]
+    },
+    "class_type": "GetImageSize+",
+    "_meta": {
+      "title": "🔧 Get Image Size"
+    }
+  },
+  "350": {
+    "inputs": {
+      "select": 1,
+      "on_missing": "previous",
+      "input_0": [
+        "243",
+        0
+      ],
+      "input_1": [
+        "337",
+        1
+      ]
+    },
+    "class_type": "Big Latent Switch [Dream]",
+    "_meta": {
+      "title": "⭆ Big Latent Switch"
+    }
+  },
+  "356": {
+    "inputs": {
+      "sharpen_radius": 1,
+      "sigma": 0.43,
+      "alpha": 0.4,
+      "image": [
+        "302",
+        0
+      ]
+    },
+    "class_type": "ImageSharpen",
+    "_meta": {
+      "title": "Image Sharpen"
+    }
+  },
+  "366": {
+    "inputs": {},
+    "class_type": "Anything Everywhere",
+    "_meta": {
+      "title": "Anything Everywhere"
+    }
+  },
+  "392": {
+    "inputs": {
+      "seed": -1
+    },
+    "class_type": "Seed (rgthree)",
+    "_meta": {
+      "title": "Seed (rgthree)"
+    }
+  },
+  "395": {
+    "inputs": {
+      "Text": [
+        "306",
+        0
+      ],
+      "Pattern": "\\n",
+      "Replace_With": "",
+      "Mode": "Strict"
+    },
+    "class_type": "DF_String_Replace",
+    "_meta": {
+      "title": "String Replace"
+    }
+  },
+  "397": {
+    "inputs": {
+      "value": true
+    },
+    "class_type": "Bool-🔬",
+    "_meta": {
+      "title": "Save RAW Output"
+    }
+  },
+  "403": {
+    "inputs": {
+      "vae": [
+        "10",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  }
+}

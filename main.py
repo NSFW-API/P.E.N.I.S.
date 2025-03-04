@@ -9,6 +9,7 @@ from src.orchestrator import run_iterations
 def parse_args():
     parser = argparse.ArgumentParser(description="Iterative Video Generation")
     parser.add_argument("--goal", type=str, help="High-level goal for the generation")
+    parser.add_argument("--gen_engine", type=str, default="replciate", help="run on replicate or local comfyui")
     parser.add_argument("--run_name", type=str, default=None,
                         help="Optional name for this run. If omitted, uses timestamp.")
     return parser.parse_args()
@@ -42,7 +43,7 @@ def main():
     config["video_output_dir"] = os.path.join(run_directory, "videos")
 
     # 4) Launch the iteration loop. We’ll pass run_directory to orchestrator
-    run_iterations(config, goal, run_directory)
+    run_iterations(config, goal, run_directory,args.gen_engine)
 
 
 if __name__ == "__main__":
