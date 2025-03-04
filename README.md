@@ -120,6 +120,9 @@ All major settings are found in “config.yaml”. Common fields:
 • replicate:  
   - model_name: "tencentarc/hunyuan-video" (or similar text-to-video checkpoint).  
 
+• local_comfyui:  
+  - config.yaml (for ComfyUI settings).
+
 • frames:  
   - extract_interval: 30 (number of frames between each extraction).  
 
@@ -135,10 +138,14 @@ Adjust these values as needed.
 ## 6. Running the Application
 
 From the project’s root directory, simply run:  
-» python main.py --goal "A woman removing her top" --run_name "demo_run"
+default replcate engine
+» python main.py --goal "A woman removing her top" --run_name "demo_run"   
+local comfyui engine
+» python main.py --goal "A woman removing her top" --run_name "demo_run" --gen_engine local_comfyui
 
 - “--goal” is your high-level scenario or user request.  
-- “--run_name” is an optional label for this run; if omitted, the system uses a timestamp.  
+- “--run_name” is an optional label for this run; if omitted, the system uses a timestamp. 
+- "--gen_engine" can be local_comfyui or replicate, default is the default engine for replicate. 
 
 When run, the system will:  
 1. Create a new subfolder in “runs/” (or your configured runs_directory).  
